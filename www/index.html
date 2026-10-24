@@ -9,7 +9,7 @@
 <body>
   <main>
     <h1>Discord Quiet Hours</h1>
-    <p class="sub">On at 9:00 AM &middot; Off at 8:00 PM</p>
+    <p class="sub" id="subText">&nbsp;</p>
 
     <section class="card state" id="stateCard">
       <div class="label">Discord notifications right now</div>
@@ -24,21 +24,57 @@
           <div class="small" id="enabledHint"></div>
         </div>
         <label class="switch">
-          <input type="checkbox" id="enabledToggle">
+          <input type="checkbox" id="enabledToggle" aria-label="Schedule on or off">
           <span></span>
         </label>
       </div>
-    </section>
-
-    <section class="card" id="accessCard">
-      <div class="label">Notification access</div>
-      <div class="small" id="accessText">&hellip;</div>
-      <button id="accessBtn" type="button">Open notification access settings</button>
+      <form id="scheduleForm" class="times">
+        <label>
+          <span>Notifications ON at</span>
+          <input type="time" id="onAt" required>
+        </label>
+        <label>
+          <span>Notifications OFF at</span>
+          <input type="time" id="offAt" required>
+        </label>
+        <button type="submit">Save times</button>
+        <div class="small" id="saveMsg" role="status"></div>
+      </form>
     </section>
 
     <section class="card">
-      <div class="label">Discord app</div>
-      <div class="small" id="discordText">&hellip;</div>
+      <div class="label">Setup</div>
+
+      <div class="check" id="accessCheck">
+        <div class="mark"></div>
+        <div class="body">
+          <div class="name">Notification access <em>required</em></div>
+          <div class="small" id="accessText"></div>
+          <button type="button" id="accessBtn">Turn on notification access</button>
+          <div class="small hint" id="restrictedHint">
+            Switch greyed out or "Restricted setting"? Open App info, tap &#8942; (top right),
+            choose <b>Allow restricted settings</b>, then come back and tap the button above again.
+            <button type="button" class="secondary" id="appInfoBtn">Open App info</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="check" id="batteryCheck">
+        <div class="mark"></div>
+        <div class="body">
+          <div class="name">Unrestricted battery <em>recommended</em></div>
+          <div class="small" id="batteryText"></div>
+          <button type="button" id="batteryBtn">Allow</button>
+        </div>
+      </div>
+
+      <div class="check" id="discordCheck">
+        <div class="mark"></div>
+        <div class="body">
+          <div class="name">Discord installed</div>
+          <div class="small" id="discordText"></div>
+        </div>
+      </div>
     </section>
 
     <p class="foot" id="envText"></p>

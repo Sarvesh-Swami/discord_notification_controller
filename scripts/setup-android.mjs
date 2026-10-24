@@ -2,8 +2,9 @@
 // project and edits AndroidManifest.xml. Safe to run more than once.
 import { copyFileSync, readFileSync, writeFileSync, existsSync, mkdirSync } from 'node:fs';
 import { join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
-const root = new URL('..', import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, '$1');
+const root = fileURLToPath(new URL('..', import.meta.url));
 const javaDir = join(root, 'android/app/src/main/java/com/quiethours/discord');
 const manifestPath = join(root, 'android/app/src/main/AndroidManifest.xml');
 
@@ -24,6 +25,13 @@ m = m.replace(/\s*<uses-permission android:name="android\.permission\.INTERNET"\
 
 // Keep the app's data out of cloud/ADB backups.
 m = m.replace('android:allowBackup="true"', 'android:allowBackup="false"');
+
+// Lets the app ask to be excluded from battery optimization, so the phone
+// doesn't stop the notification listener overnight.
+const battery = '<uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />';
+if (!m.includes(battery)) {
+  m = m.replace('</manifest>', `    ${battery}\n</manifest>`);
+}
 
 // Lets the app see whether Discord is installed (Android 11+ package visibility).
 if (!m.includes('<queries>')) {
