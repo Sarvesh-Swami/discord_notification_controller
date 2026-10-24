@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Discord Quiet Hours</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main>
+    <h1>Discord Quiet Hours</h1>
+    <p class="sub">On at 9:00 AM &middot; Off at 8:00 PM</p>
+
+    <section class="card state" id="stateCard">
+      <div class="label">Discord notifications right now</div>
+      <div class="big" id="stateText">&hellip;</div>
+      <div class="small" id="nextText"></div>
+    </section>
+
+    <section class="card">
+      <div class="row">
+        <div>
+          <div class="label">Schedule</div>
+          <div class="small" id="enabledHint"></div>
+        </div>
+        <label class="switch">
+          <input type="checkbox" id="enabledToggle">
+          <span></span>
+        </label>
+      </div>
+    </section>
+
+    <section class="card" id="accessCard">
+      <div class="label">Notification access</div>
+      <div class="small" id="accessText">&hellip;</div>
+      <button id="accessBtn" type="button">Open notification access settings</button>
+    </section>
+
+    <section class="card">
+      <div class="label">Discord app</div>
+      <div class="small" id="discordText">&hellip;</div>
+    </section>
+
+    <p class="foot" id="envText"></p>
+  </main>
+  <script type="module" src="app.js"></script>
+</body>
+</html>

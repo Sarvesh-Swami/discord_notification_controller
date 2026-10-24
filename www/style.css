@@ -1,0 +1,77 @@
+:root {
+  --bg: #f4f5f9;
+  --card: #ffffff;
+  --text: #1d1f27;
+  --muted: #646a7a;
+  --accent: #5865f2;
+  --on: #1f9d55;
+  --off: #c2410c;
+  --border: #e3e5ec;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #15161b;
+    --card: #1f2128;
+    --text: #eceef4;
+    --muted: #9aa0b0;
+    --border: #2d3039;
+    --on: #3ecf7a;
+    --off: #f97a45;
+  }
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font: 16px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+main {
+  max-width: 480px;
+  margin: 0 auto;
+  padding: calc(24px + env(safe-area-inset-top)) 16px 32px;
+}
+h1 { margin: 0; font-size: 1.5rem; }
+.sub { margin: 4px 0 20px; color: var(--muted); }
+.card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 16px;
+  margin-bottom: 12px;
+}
+.label { font-weight: 600; }
+.small { color: var(--muted); font-size: 0.9rem; margin-top: 4px; }
+.big { font-size: 2rem; font-weight: 700; margin-top: 4px; }
+.state.on .big { color: var(--on); }
+.state.off .big { color: var(--off); }
+.state.paused .big { color: var(--muted); }
+.row { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+button {
+  margin-top: 12px;
+  width: 100%;
+  padding: 12px;
+  border: 0;
+  border-radius: 10px;
+  background: var(--accent);
+  color: #fff;
+  font: inherit;
+  font-weight: 600;
+}
+.ok button { display: none; }
+.switch { position: relative; width: 52px; height: 30px; flex: none; }
+.switch input { opacity: 0; width: 0; height: 0; }
+.switch span {
+  position: absolute; inset: 0;
+  background: var(--border);
+  border-radius: 30px;
+  transition: background .2s;
+}
+.switch span::after {
+  content: ""; position: absolute; top: 3px; left: 3px;
+  width: 24px; height: 24px; border-radius: 50%;
+  background: #fff; transition: transform .2s;
+}
+.switch input:checked + span { background: var(--accent); }
+.switch input:checked + span::after { transform: translateX(22px); }
+.foot { color: var(--muted); font-size: 0.8rem; text-align: center; }
