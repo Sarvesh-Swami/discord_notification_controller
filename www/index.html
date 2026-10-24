@@ -15,6 +15,18 @@
       <div class="label">Discord notifications right now</div>
       <div class="big" id="stateText">&hellip;</div>
       <div class="small" id="nextText"></div>
+      <div class="small" id="shadeText"></div>
+    </section>
+
+    <section class="card note">
+      <div class="label">How this works</div>
+      <div class="small">
+        During OFF hours this app removes Discord notifications as they arrive. During ON hours it
+        leaves them alone. It cannot flip Discord's own notification switch (Android doesn't allow
+        that), so keep Discord's notifications <b>allowed</b> in Settings. If they're off there,
+        nothing will show at the ON time.
+      </div>
+      <button type="button" class="secondary" id="discordSettingsBtn">Open Discord's notification settings</button>
     </section>
 
     <section class="card">
@@ -59,6 +71,14 @@
         </div>
       </div>
 
+      <div class="check" id="listenerCheck">
+        <div class="mark"></div>
+        <div class="body">
+          <div class="name">Listener running</div>
+          <div class="small" id="listenerText"></div>
+        </div>
+      </div>
+
       <div class="check" id="batteryCheck">
         <div class="mark"></div>
         <div class="body">
@@ -74,6 +94,18 @@
           <div class="name">Discord installed</div>
           <div class="small" id="discordText"></div>
         </div>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="label">Activity log</div>
+      <div class="small">Times, decisions and app names only, never message text. Share it with whoever is fixing the app.</div>
+      <pre id="logText" class="log">&hellip;</pre>
+      <div class="btnrow">
+        <button type="button" class="secondary" id="logShareBtn">Share</button>
+        <button type="button" class="secondary" id="logCopyBtn">Copy</button>
+        <button type="button" class="secondary" id="logRefreshBtn">Refresh</button>
+        <button type="button" class="secondary" id="logClearBtn">Clear</button>
       </div>
     </section>
 

@@ -18,18 +18,29 @@ const QuietHours = native
       const read = (k, d) => { try { return localStorage.getItem(k) ?? d; } catch { return d; } };
       const write = (k, v) => { try { localStorage.setItem(k, v); } catch {} };
       const say = (what) => alert(`On the phone this opens ${what}.`);
+      const log = (msg) => {
+        const t = new Date().toISOString().replace('T', ' ').slice(0, 19);
+        write('log', `${t}  ${msg}\n${read('log', '')}`);
+      };
       return {
         async getStatus() {
           return {
             enabled: read('enabled', 'true') !== 'false',
             onAt: read('onAt', DEFAULT_SCHEDULE.onAt),
             offAt: read('offAt', DEFAULT_SCHEDULE.offAt),
-            accessGranted: false, batteryUnrestricted: false, discordInstalled: false, sdkInt: 0,
+            accessGranted: false, listenerConnected: false, discordInShade: -1,
+            batteryUnrestricted: false, discordInstalled: false, sdkInt: 0,
           };
         },
-        async setEnabled({ enabled }) { write('enabled', String(enabled)); },
-        async setSchedule({ onAt, offAt }) { write('onAt', onAt); write('offAt', offAt); },
+        async logAppOpened() { log('App opened (browser preview)'); },
+        async setEnabled({ enabled }) { write('enabled', String(enabled)); log(`Schedule switched ${enabled ? 'ON' : 'OFF (paused)'}`); },
+        async setSchedule({ onAt, offAt }) { write('onAt', onAt); write('offAt', offAt); log(`Times saved | ON=${onAt} OFF=${offAt}`); },
+        async getLog() { return { text: read('log', '') }; },
+        async clearLog() { write('log', ''); },
+        async copyLog() { await navigator.clipboard?.writeText(read('log', '')); },
+        async shareLog() { say('the Android share sheet'); },
         async openAccessSettings() { say('Settings > Notification access'); },
+        async openDiscordSettings() { say("Discord's notification settings"); },
         async openAppInfo() { say('App info'); },
         async requestBatteryUnrestricted() { say('the battery optimization prompt'); },
       };
@@ -81,6 +92,16 @@ async function render() {
   // "Allow restricted settings" is turned on.
   $('restrictedHint').hidden = s.accessGranted || (native && s.sdkInt < 33);
 
+  setCheck('listenerCheck', s.listenerConnected);
+  $('listenerText').textContent = s.listenerConnected
+    ? 'Android has the app connected and is sending it notifications.'
+    : s.accessGranted
+      ? 'Access is on but Android has not connected the app yet. Turn notification access off and on again, or restart the phone.'
+      : 'Needs notification access first.';
+  $('shadeText').textContent = s.discordInShade >= 0
+    ? `Discord notifications in your notification shade now: ${s.discordInShade}`
+    : '';
+
   setCheck('batteryCheck', s.batteryUnrestricted);
   $('batteryText').textContent = s.batteryUnrestricted
     ? 'Allowed. The phone won’t stop the app overnight.'
@@ -94,6 +115,12 @@ async function render() {
   if (!$('envText').textContent.startsWith('Error')) {
     $('envText').textContent = native ? '' : 'Browser preview: phone features are simulated.';
   }
+  renderLog();
+}
+
+async function renderLog() {
+  const { text } = await QuietHours.getLog();
+  $('logText').textContent = text || 'Nothing logged yet.';
 }
 
 $('enabledToggle').addEventListener('change', async (e) => {
@@ -127,8 +154,17 @@ const opener = (method) => async () => {
 $('accessBtn').addEventListener('click', opener('openAccessSettings'));
 $('appInfoBtn').addEventListener('click', opener('openAppInfo'));
 $('batteryBtn').addEventListener('click', opener('requestBatteryUnrestricted'));
+$('discordSettingsBtn').addEventListener('click', opener('openDiscordSettings'));
+$('logShareBtn').addEventListener('click', opener('shareLog'));
+$('logCopyBtn').addEventListener('click', async () => {
+  await opener('copyLog')();
+  $('logCopyBtn').textContent = 'Copied';
+  setTimeout(() => { $('logCopyBtn').textContent = 'Copy'; }, 1500);
+});
+$('logRefreshBtn').addEventListener('click', () => render());
+$('logClearBtn').addEventListener('click', async () => { await QuietHours.clearLog(); renderLog(); });
 
 // Re-check when the user comes back from a settings screen, and once a minute.
 document.addEventListener('visibilitychange', () => { if (!document.hidden) render(); });
 setInterval(render, 60_000);
-render();
+QuietHours.logAppOpened().finally(render);

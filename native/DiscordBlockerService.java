@@ -3,6 +3,7 @@ package com.quiethours.discord;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.os.Build;
 import android.service.notification.NotificationListenerService;
 import android.service.notification.StatusBarNotification;
 
@@ -12,7 +13,7 @@ import java.util.Calendar;
  * Android calls this service for every notification once the user grants
  * "Notification access". From the OFF time until the ON time it removes anything
  * Discord posts; the rest of the day it lets everything through.
- * Same rule as www/schedule.js.
+ * It never changes Discord's own notification setting. Same rule as www/schedule.js.
  */
 public class DiscordBlockerService extends NotificationListenerService {
 
@@ -23,6 +24,9 @@ public class DiscordBlockerService extends NotificationListenerService {
     static final String KEY_OFF_AT = "offAt";
     static final String DEFAULT_ON_AT = "09:00";
     static final String DEFAULT_OFF_AT = "20:00";
+
+    // Set while Android has the listener connected; read by QuietHoursPlugin for the status screen.
+    static volatile DiscordBlockerService connected;
 
     static SharedPreferences prefs(Context c) {
         return c.getSharedPreferences(PREFS, MODE_PRIVATE);
@@ -55,39 +59,78 @@ public class DiscordBlockerService extends NotificationListenerService {
         return t >= off || t < on;
     }
 
+    static String describe(Context c) {
+        return "schedule=" + (isEnabled(c) ? "on" : "paused")
+                + " ON=" + onAt(c) + " OFF=" + offAt(c)
+                + " now=" + (isQuietTime(c) ? "OFF period (hiding)" : "ON period (showing)");
+    }
+
     private boolean shouldBlock() {
         return isEnabled(this) && isQuietTime(this);
     }
 
-    // Removes every Discord notification currently in the shade.
-    private void clearDiscord() {
-        StatusBarNotification[] active = getActiveNotifications();
-        if (active == null) return;
-        for (StatusBarNotification sbn : active) {
-            if (DISCORD.equals(sbn.getPackageName())) cancelNotification(sbn.getKey());
+    // Number of Discord notifications in the shade right now.
+    int countDiscord() {
+        StatusBarNotification[] active;
+        try {
+            active = getActiveNotifications();
+        } catch (SecurityException e) { // listener was unbound behind our back
+            return -1;
         }
+        if (active == null) return 0;
+        int n = 0;
+        for (StatusBarNotification sbn : active) {
+            if (DISCORD.equals(sbn.getPackageName())) n++;
+        }
+        return n;
+    }
+
+    // Removes every Discord notification currently in the shade.
+    private int clearDiscord() {
+        StatusBarNotification[] active = getActiveNotifications();
+        if (active == null) return 0;
+        int n = 0;
+        for (StatusBarNotification sbn : active) {
+            if (DISCORD.equals(sbn.getPackageName())) {
+                cancelNotification(sbn.getKey());
+                n++;
+            }
+        }
+        return n;
     }
 
     // Runs for every app's notifications, so Discord notifications left over from
     // before the OFF time are also cleared the next time anything arrives.
     @Override
     public void onNotificationPosted(StatusBarNotification sbn) {
-        if (!shouldBlock()) return;
+        boolean block = shouldBlock();
         if (DISCORD.equals(sbn.getPackageName())) {
-            cancelNotification(sbn.getKey());
-        } else {
-            clearDiscord();
+            String channel = Build.VERSION.SDK_INT >= 26 ? sbn.getNotification().getChannelId() : "-";
+            if (block) cancelNotification(sbn.getKey());
+            EventLog.add(this, "Discord notification (channel " + channel + ", ongoing="
+                    + sbn.isOngoing() + ") -> " + (block ? "HIDDEN" : "SHOWN")
+                    + " | " + describe(this));
+        } else if (block) {
+            int n = clearDiscord();
+            if (n > 0) EventLog.add(this, "Cleared " + n + " leftover Discord notification(s)");
         }
     }
 
     @Override
     public void onListenerConnected() {
-        if (shouldBlock()) clearDiscord();
+        connected = this;
+        EventLog.add(this, "Listener CONNECTED | " + describe(this));
+        if (shouldBlock()) {
+            int n = clearDiscord();
+            if (n > 0) EventLog.add(this, "Cleared " + n + " Discord notification(s) on connect");
+        }
     }
 
     // Some phones drop the connection (updates, battery savers); ask to be reconnected.
     @Override
     public void onListenerDisconnected() {
+        connected = null;
+        EventLog.add(this, "Listener DISCONNECTED, asking Android to reconnect");
         requestRebind(new ComponentName(this, DiscordBlockerService.class));
     }
 }

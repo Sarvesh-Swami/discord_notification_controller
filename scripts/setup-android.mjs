@@ -14,7 +14,7 @@ if (!existsSync(manifestPath)) {
 }
 
 mkdirSync(javaDir, { recursive: true });
-for (const f of ['MainActivity.java', 'QuietHoursPlugin.java', 'DiscordBlockerService.java']) {
+for (const f of ['MainActivity.java', 'QuietHoursPlugin.java', 'DiscordBlockerService.java', 'EventLog.java']) {
   copyFileSync(join(root, 'native', f), join(javaDir, f));
 }
 

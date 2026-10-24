@@ -94,6 +94,19 @@ button.secondary {
 .check.ok button, .check.ok .hint { display: none; }
 .hint { margin-top: 10px; }
 [hidden] { display: none !important; }
+.log {
+  margin: 12px 0 0;
+  max-height: 320px;
+  overflow: auto;
+  padding: 10px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  font: 0.72rem/1.5 ui-monospace, "Cascadia Mono", Consolas, monospace;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+.btnrow { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
 .switch { position: relative; width: 52px; height: 30px; flex: none; }
 .switch input { opacity: 0; width: 0; height: 0; }
 .switch span {
